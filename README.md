@@ -15,39 +15,80 @@ The project demonstrates a simple administrative interface for managing student 
 ### High-level architecture
 
 ```mermaid
-graph LR
-  A[Next.js Frontend] -->|HTTP requests| B[FastAPI Backend]
-  B -->|MySQL Connector / SQL| C[MySQL Database]
-  A -->|UI pages| D[Create / read / students Pages]
-  B -->|Routes| E[/create, /read, /update, /delete, /students]
-```
+flowchart TB
 
-### Detailed application flowchart
+    A["👤 User<br/>Accesses Student Management Portal"] --> B["🌐 Next.js Frontend"]
 
-```mermaid
-flowchart TD
-  U[User Browser]
-  F[Next.js Frontend]
-  A[FastAPI Backend]
-  V[Request Validation]
-  S[Students Service Layer]
-  D[MySQL Database]
-  R[JSON Response]
-  E[Error Handling]
+    subgraph Frontend["Frontend Layer (Next.js)"]
+        B --> C["Students List Page<br/>/students"]
+        B --> D["Create Student Page<br/>/create"]
+        B --> E["Student Details Page<br/>/read/[id]"]
+    end
 
-  U --> F
-  F -->|HTTP request| A
-  A -->|Validate payload with Pydantic| V
-  V --> S
-  A -->|Call CRUD functions| S
-  S -->|Execute SQL| D
-  D -->|Query result| S
-  S -->|Return payload| A
-  A -->|Send JSON response| R
-  R --> F
-  A --> E
-  E --> F
-```
+    C --> F["Fetch Student Records"]
+    D --> G["Submit Student Form"]
+    E --> H["Read / Update / Delete Student"]
+
+    F --> I["FastAPI API Layer"]
+    G --> I
+    H --> I
+
+    subgraph Backend["Backend Layer (FastAPI)"]
+
+        I --> J["API Router"]
+
+        J --> K["GET /students<br/>Retrieve All Students"]
+
+        J --> L["POST /create<br/>Create Student"]
+
+        J --> M["GET /read<br/>Get Student By ID"]
+
+        J --> N["PUT /update<br/>Update Student"]
+
+        J --> O["DELETE /delete<br/>Delete Student"]
+
+        K --> P["Pydantic Validation"]
+        L --> P
+        M --> P
+        N --> P
+        O --> P
+
+        P --> Q["Student Service Functions<br/>functions/students.py"]
+
+    end
+
+    subgraph DatabaseLayer["Database Layer"]
+
+        Q --> R["MySQL Connection<br/>database.py"]
+
+        R --> S["Students Table"]
+
+        S --> T["Execute SQL Queries"]
+
+        T --> U["INSERT Student"]
+        T --> V["SELECT Student(s)"]
+        T --> W["UPDATE Student"]
+        T --> X["DELETE Student"]
+
+    end
+
+    U --> Y["Query Result"]
+    V --> Y
+    W --> Y
+    X --> Y
+
+    Y --> Z["JSON Response Generated"]
+
+    Z --> AA["HTTP Response Returned"]
+
+    AA --> AB["Next.js Updates UI"]
+
+    AB --> AC["User Sees Updated Data"]
+
+    P --> AD["Validation Error"]
+
+    AD --> AE["422 Validation Response"]
+
 
 ### Key features
 
@@ -653,80 +694,6 @@ Not required.
 - [x] Environment variables section included
 
 
-```mermaid
-flowchart TB
-
-    A["👤 User<br/>Accesses Student Management Portal"] --> B["🌐 Next.js Frontend"]
-
-    subgraph Frontend["Frontend Layer (Next.js)"]
-        B --> C["Students List Page<br/>/students"]
-        B --> D["Create Student Page<br/>/create"]
-        B --> E["Student Details Page<br/>/read/[id]"]
-    end
-
-    C --> F["Fetch Student Records"]
-    D --> G["Submit Student Form"]
-    E --> H["Read / Update / Delete Student"]
-
-    F --> I["FastAPI API Layer"]
-    G --> I
-    H --> I
-
-    subgraph Backend["Backend Layer (FastAPI)"]
-
-        I --> J["API Router"]
-
-        J --> K["GET /students<br/>Retrieve All Students"]
-
-        J --> L["POST /create<br/>Create Student"]
-
-        J --> M["GET /read<br/>Get Student By ID"]
-
-        J --> N["PUT /update<br/>Update Student"]
-
-        J --> O["DELETE /delete<br/>Delete Student"]
-
-        K --> P["Pydantic Validation"]
-        L --> P
-        M --> P
-        N --> P
-        O --> P
-
-        P --> Q["Student Service Functions<br/>functions/students.py"]
-
-    end
-
-    subgraph DatabaseLayer["Database Layer"]
-
-        Q --> R["MySQL Connection<br/>database.py"]
-
-        R --> S["Students Table"]
-
-        S --> T["Execute SQL Queries"]
-
-        T --> U["INSERT Student"]
-        T --> V["SELECT Student(s)"]
-        T --> W["UPDATE Student"]
-        T --> X["DELETE Student"]
-
-    end
-
-    U --> Y["Query Result"]
-    V --> Y
-    W --> Y
-    X --> Y
-
-    Y --> Z["JSON Response Generated"]
-
-    Z --> AA["HTTP Response Returned"]
-
-    AA --> AB["Next.js Updates UI"]
-
-    AB --> AC["User Sees Updated Data"]
-
-    P --> AD["Validation Error"]
-
-    AD --> AE["422 Validation Response"]
 
     AE --> AB
 ```
