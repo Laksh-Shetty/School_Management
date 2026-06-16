@@ -37,9 +37,9 @@ A full-stack student management application built with a **Next.js** frontend, *
 ```mermaid
 graph LR
   A[Next.js Frontend] -->|HTTP requests| B[FastAPI Backend]
-  B -->|MySQL Connector / SQL| C[MySQL Database]
-  A -->|UI pages| D[Create / read / students Pages]
-  B -->|Routes| E[/create, /read, /update, /delete, /students]
+  B -->|MySQL Connector SQL| C[MySQL Database]
+  A -->|UI pages| D[Create and Read and Students Pages]
+  B -->|Routes| E[create read update delete students]
 ```
 
 ### Detailed Application Flowchart
