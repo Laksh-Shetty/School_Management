@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "Ira-FastAPI Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for Ira-FastAPI backend endpoints."
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": ["/"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Student",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1,\n  \"name\": \"Jane Doe\",\n  \"age\": 18,\n  \"grade\": \"12\",\n  \"address\": \"123 Main St\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/create",
+          "host": ["{{base_url}}"],
+          "path": ["create"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Read Student",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/read?student_id=1",
+          "host": ["{{base_url}}"],
+          "path": ["read"],
+          "query": [
+            {
+              "key": "student_id",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Student",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 1,\n  \"name\": \"Jane Doe\",\n  \"age\": 19,\n  \"grade\": \"12\",\n  \"address\": \"456 Elm St\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/update",
+          "host": ["{{base_url}}"],
+          "path": ["update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Student",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/delete?student_id=1",
+          "host": ["{{base_url}}"],
+          "path": ["delete"],
+          "query": [
+            {
+              "key": "student_id",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Students",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/students",
+          "host": ["{{base_url}}"],
+          "path": ["students"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}
