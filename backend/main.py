@@ -4,10 +4,11 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from functions.students import create_student, read_student, update_student, delete_student, all_students
+from functions.chatbot import handle_command
 from schema.student import Student
 
 
-app=FastAPI()
+app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,6 +41,12 @@ async def delete(student_id: int):
 @app.get("/students")
 async def get_students():
     return all_students()
+
+@app.post("/chat")
+async def chat(command: dict):
+    if "command" not in command:
+        return JSONResponse(status_code=400, content={"detail": "Missing 'command' field"})
+    return handle_command(command["command"])
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
