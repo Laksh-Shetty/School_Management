@@ -32,7 +32,7 @@ A full-stack student management application built with a **Next.js** frontend, *
 - A responsive Next.js UI for student listing, creation, detail editing, and AI-powered chat.
 - A FastAPI backend exposing REST endpoints for CRUD operations and a `/chat` endpoint for natural language commands.
 - A MySQL database for persistent student storage.
-- An LLM-based parser (Google Gemini) that interprets chat commands and maps them to student CRUD operations.
+- An LLM-based parser (Google Gemini 3.5 Flash) that interprets chat commands and maps them to student CRUD operations, with Gemini 2.5 Flash as the fallback model.
 
 ### High-level Architecture
 
@@ -42,7 +42,7 @@ graph LR
   B -->|MySQL Connector SQL| C[MySQL Database]
   A -->|UI pages| D[Create / Read / Students / Chat Pages]
   B -->|Routes| E[create / read / update / delete / students / chat]
-  B -->|LLM parse| F[Gemini API]
+  B -->|LLM parse| F[Gemini 3.5 Flash API]
 ```
 
 ### Detailed Application Flowchart
@@ -100,7 +100,7 @@ flowchart TD
 | Backend | FastAPI |
 | Database | MySQL |
 | ORM / Database Layer | Direct SQL via `mysql.connector` (no ORM) |
-| LLM / AI Parser | Google Gemini (`google.genai` client) |
+| LLM / AI Parser | Google Gemini 3.5 Flash (primary) / 2.5 Flash (fallback) via `google.genai` client |
 | Authentication | Not implemented |
 | Deployment | Not implemented |
 
@@ -118,7 +118,7 @@ Ira-FastAPI/
 │   ├── functions/
 │   │   ├── __init__.py
 │   │   ├── students.py             # CRUD SQL functions
-│   │   ├── parser.py               # LLM parser (google.genai / Gemini)
+│   │   ├── parser.py               # LLM parser (Gemini 3.5 Flash primary, 2.5 Flash fallback)
 │   │   └── chatbot.py              # Chat command handler and navigation hints
 │   └── schema/
 │       └── student.py
@@ -733,9 +733,26 @@ The AI Student Assistant is accessible from the `/students` page. It accepts fre
 
 ### LLM Parser (`backend/functions/parser.py`)
 
-- Uses the `google.genai` client with the model specified by `GEMINI_API_KEY`.
+- Uses the `google.genai` client to call the Gemini API.
 - Returns a JSON structure that `chatbot.py` uses to select which CRUD function to call.
 - If you prefer not to use the cloud model, replace `parse_command_with_gemini` with a deterministic parser.
+
+#### Model selection
+
+| Role | Model | Reason |
+|---|---|---|
+| Primary | `gemini-3.5-flash` | Best balance of speed and instruction-following accuracy for structured JSON extraction from short natural language commands. The improved reasoning in 3.5 Flash handles ambiguous phrasings (e.g. `"bump student 3's age by one"`) more reliably than earlier models, and the low latency keeps the chat interface feeling responsive. |
+| Fallback | `gemini-2.5-flash` | Used when 3.5 Flash is unavailable or rate-limited. Nearly as capable for straightforward commands and widely available across Gemini API tiers. |
+
+The model is set in `parser.py`. To switch to the fallback manually, change the model string:
+
+```python
+# Primary
+model = "gemini-3.5-flash"
+
+# Fallback
+model = "gemini-2.5-flash"
+```
 
 ### Supported chat actions
 
