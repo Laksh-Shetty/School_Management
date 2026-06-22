@@ -1,94 +1,59 @@
 # Ira-FastAPI — Student Management System
 
-A full-stack student management application built with a **Next.js** frontend, **FastAPI** backend, and **MySQL** database. The application enables creating, reading, updating, deleting, and listing student records through a responsive web interface — including an **AI-driven chat interface** that parses natural language commands and executes CRUD operations automatically.
+A full-stack student management application with a **Next.js** frontend, **FastAPI** backend, and **MySQL** database. Includes an AI-powered floating chat assistant that accepts natural language commands and executes CRUD operations in real time.
 
 ---
 
 ## Table of Contents
 
-- [Project Overview](#1-project-overview)
-- [Tech Stack](#2-tech-stack)
-- [Project Structure](#3-project-structure)
-- [Installation & Setup](#4-installation--setup)
-- [Environment Variables](#5-environment-variables)
-- [Application Workflow](#6-application-workflow)
-- [API Documentation](#7-api-documentation)
-- [Complete API Inventory](#8-complete-api-inventory)
-- [Frontend Pages & Components](#9-frontend-pages--components)
-- [Database Documentation](#10-database-documentation)
-- [Authentication & Authorization](#11-authentication--authorization)
-- [Error Handling](#12-error-handling)
-- [AI Chat Interface](#13-ai-chat-interface)
-- [Assumptions & Limitations](#14-assumptions--limitations)
-- [Postman Collection](#15-postman-collection)
-- [Submission Readiness Checklist](#16-submission-readiness-checklist)
+1. [Project Overview](#1-project-overview)
+2. [Tech Stack](#2-tech-stack)
+3. [Project Structure](#3-project-structure)
+4. [Installation & Setup](#4-installation--setup)
+5. [Environment Variables](#5-environment-variables)
+6. [API Documentation](#6-api-documentation)
+7. [AI Chat Interface](#7-ai-chat-interface)
+8. [Database](#8-database)
+9. [Frontend Pages](#9-frontend-pages)
+10. [Error Handling](#10-error-handling)
+11. [Assumptions & Limitations](#11-assumptions--limitations)
 
 ---
 
 ## 1. Project Overview
 
-`Ira-FastAPI` demonstrates a simple administrative interface for managing student details with:
+Ira-FastAPI is an admin portal for managing student records. The core workflow:
 
-- A responsive Next.js UI for student listing, creation, detail editing, and AI-powered chat.
-- A FastAPI backend exposing REST endpoints for CRUD operations and a `/chat` endpoint for natural language commands.
-- A MySQL database for persistent student storage.
-- An LLM-based parser (Google Gemini 3.5 Flash) that interprets chat commands and maps them to student CRUD operations, with Gemini 2.5 Flash as the fallback model.
+- View, search, create, edit, and delete students through a clean web UI
+- Use the **floating AI assistant** on the students page to perform any operation in plain English
+- The backend parses natural language via **Google Gemini**, executes the right SQL, and returns a structured response the frontend renders instantly
 
-### High-level Architecture
+### Architecture
 
-```mermaid
-graph LR
-  A[Next.js Frontend] -->|HTTP requests| B[FastAPI Backend]
-  B -->|MySQL Connector SQL| C[MySQL Database]
-  A -->|UI pages| D[Create / Read / Students / Chat Pages]
-  B -->|Routes| E[create / read / update / delete / students / chat]
-  B -->|LLM parse| F[Gemini 3.5 Flash API]
 ```
-
-### Detailed Application Flowchart
-
-```mermaid
-flowchart TD
-  U[User Browser]
-  F[Next.js Frontend]
-  A[FastAPI Backend]
-  V[Request Validation]
-  S[Students Service Layer]
-  P[LLM Parser - Gemini]
-  C[Chatbot Handler]
-  D[MySQL Database]
-  R[JSON Response]
-  E[Error Handling]
-
-  U --> F
-  F -->|HTTP request| A
-  A -->|Validate payload with Pydantic| V
-  V --> S
-  A -->|POST /chat command| C
-  C -->|parse_command_with_gemini| P
-  P -->|JSON action + args| C
-  C -->|resolve action| S
-  S -->|Execute SQL| D
-  D -->|Query result| S
-  S -->|Return payload| A
-  A -->|Send JSON response| R
-  R --> F
-  A --> E
-  E --> F
+Next.js (port 3000)
+      │
+      │  HTTP / REST
+      ▼
+FastAPI (port 8000)
+      │
+      ├── /students, /create, /read, /update, /delete  ← direct REST
+      └── /command  ← natural language → Gemini → CRUD
+              │
+              ▼
+         MySQL Database
 ```
 
 ### Key Features
 
-- Frontend student dashboard with search and navigation
-- Create student records via form submission
-- Read student details by ID
-- Update student data in-place (partial merge supported via chat)
-- Delete student records
-- List all students from the database
-- **AI chat interface** — natural language commands mapped to CRUD via Gemini LLM
-- **Auto-navigation** — chat responses include `navigate.path` for automatic frontend routing
-- FastAPI validation using Pydantic
-- CORS enabled for frontend-backend access
+| Feature | Detail |
+|---|---|
+| Student CRUD | Create, read, update, delete via REST or AI chat |
+| Bulk operations | Delete all, delete by filter, update by filter via chat |
+| AI chat | Floating widget — natural language → Gemini → SQL |
+| Live table refresh | Table auto-updates after every chat mutation |
+| Search | Client-side filter by name, grade, or ID |
+| Partial updates | Chat merges only changed fields; existing fields preserved |
 
 ---
 
@@ -96,13 +61,12 @@ flowchart TD
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js (JSX) |
-| Backend | FastAPI |
+| Frontend | Next.js 14 (App Router, JSX) |
+| Backend | FastAPI (Python) |
 | Database | MySQL |
-| ORM / Database Layer | Direct SQL via `mysql.connector` (no ORM) |
-| LLM / AI Parser | Google Gemini 3.5 Flash (primary) / 2.5 Flash (fallback) via `google.genai` client |
-| Authentication | Not implemented |
-| Deployment | Not implemented |
+| DB Driver | `mysql.connector` (no ORM, raw SQL) |
+| AI Parser | Google Gemini 2.5 Flash via `google-genai` |
+| Styling | Inline styles + Tailwind utility classes |
 
 ---
 
@@ -111,296 +75,137 @@ flowchart TD
 ```
 Ira-FastAPI/
 ├── backend/
-│   ├── database.py
-│   ├── main.py
+│   ├── main.py                  # FastAPI app, routes, CORS, error handlers
+│   ├── database.py              # MySQL connection
 │   ├── requirements.txt
-│   ├── .env                        # local (not checked in) — DB + Gemini keys
+│   ├── .env                     # DB password + Gemini key (not committed)
 │   ├── functions/
-│   │   ├── __init__.py
-│   │   ├── students.py             # CRUD SQL functions
-│   │   ├── parser.py               # LLM parser (Gemini 3.5 Flash primary, 2.5 Flash fallback)
-│   │   └── chatbot.py              # Chat command handler and navigation hints
+│   │   ├── students.py          # CRUD SQL functions
+│   │   ├── parser.py            # Gemini LLM parser
+│   │   └── chatbot.py           # Command handler (routing + bulk ops)
 │   └── schema/
-│       └── student.py
-├── my-app/
-│   ├── app/
-│   │   ├── create/page.jsx
-│   │   ├── read/[id]/page.jsx
-│   │   ├── students/page.jsx       # Contains AI Student Assistant chat box
-│   │   ├── page.js
-│   │   └── layout.js
-│   ├── components/
-│   │   └── ui/table.jsx
-│   ├── lib/
-│   │   └── utils.js
-│   ├── next.config.mjs
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── postcss.config.mjs
-│   └── README.md
-├── PostmanCollection.json
-└── README.md
+│       └── student.py           # Pydantic Student model
+│
+└── my-app/
+    ├── app/
+    │   ├── page.js              # Landing page
+    │   ├── layout.js
+    │   ├── students/page.jsx    # Main dashboard + floating AI chat
+    │   ├── create/page.jsx      # Create student form
+    │   └── read/[id]/page.jsx   # Student detail / edit / delete
+    ├── components/
+    │   └── ui/table.jsx
+    ├── lib/utils.js
+    └── package.json
 ```
-
-### Folder Purposes
-
-| Path | Purpose |
-|---|---|
-| `backend/` | FastAPI backend application source and database connectivity |
-| `backend/main.py` | FastAPI app, route definitions, CORS middleware, and validation error handling |
-| `backend/functions/students.py` | CRUD functions, SQL query execution, and MySQL interaction |
-| `backend/functions/parser.py` | LLM parser — calls Gemini to extract action and arguments from natural language |
-| `backend/functions/chatbot.py` | Chat handler — resolves parsed actions, merges update fields, returns `{ success, message, navigate }` |
-| `backend/schema/student.py` | Pydantic `Student` schema for request validation |
-| `backend/database.py` | MySQL connection and cursor configuration |
-| `backend/requirements.txt` | Python dependencies |
-| `backend/.env` | Environment variables (not checked in) |
-| `my-app/` | Next.js frontend application |
-| `my-app/app/` | Next.js page routes and UI screens |
-| `my-app/components/ui/table.jsx` | Reusable table UI component |
-| `my-app/lib/utils.js` | Utility helper for class name merging |
-| `my-app/package.json` | Frontend dependencies and scripts |
 
 ---
 
 ## 4. Installation & Setup
 
-### Backend Setup
+### Prerequisites
 
-**Requirements:** Python 3.10 or later
+- Python 3.10+
+- Node.js 18+
+- MySQL 8+
+
+---
+
+### Backend
 
 ```bash
-cd d:\Ira-FastAPI\backend
+cd backend
 python -m venv venv
-```
 
-Activate the virtual environment:
+# Activate
+source venv/Scripts/activate      # Mac / Linux / WSL
+.\venv\Scripts\Activate.ps1       # PowerShell
+venv\Scripts\activate             # CMD
 
-```bash
-# PowerShell
-.\venv\Scripts\Activate.ps1
-
-# Bash / WSL
-source venv/Scripts/activate
-
-# Command Prompt
-venv\Scripts\activate
-```
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
-Create a `.env` file (see [Environment Variables](#5-environment-variables)), set up the database (see [MySQL Setup](#mysql-setup) below), then start the server:
+Create `.env` (see [Environment Variables](#5-environment-variables)), set up MySQL (see below), then:
 
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The API will be available at `http://localhost:8000`.
-
----
-
-### Frontend Setup
-
-**Requirements:** Node.js 18 or later
-
-```bash
-cd d:\Ira-FastAPI\my-app
-npm install
-npm run dev
-```
-
-The app will be available at `http://localhost:3000`.
-
 ---
 
 ### MySQL Setup
-
-Create the database and table manually:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS school_management;
 USE school_management;
 
 CREATE TABLE students (
-  id      INT PRIMARY KEY,
-  name    VARCHAR(255) NOT NULL,
-  age     INT NOT NULL,
-  grade   VARCHAR(100) NOT NULL,
-  address VARCHAR(255) NOT NULL
+  id       INT PRIMARY KEY AUTO_INCREMENT,
+  roll_no  VARCHAR(255) NOT NULL UNIQUE,
+  name     VARCHAR(255) NOT NULL,
+  age      INT          NOT NULL,
+  grade    VARCHAR(100) NOT NULL,
+  address  VARCHAR(255) NOT NULL
 );
 ```
 
-Update the connection settings in `backend/database.py` to match your credentials, or set them via `.env`:
+---
 
-```python
-host     = "localhost"
-user     = "your_user"
-password = os.getenv("DATABASE_PASSWORD")
-database = "school_management"
+### Frontend
+
+```bash
+cd my-app
+npm install
+npm run dev
 ```
+
+App runs at `http://localhost:3000`.
 
 ---
 
 ## 5. Environment Variables
 
-Create a `.env` file inside `backend/` containing:
+Create `backend/.env`:
 
 ```env
-DATABASE_PASSWORD=your_db_password
+DATABASE_PASSWORD=your_mysql_password
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_PASSWORD` | Yes | Password used by `backend/database.py` to connect to MySQL |
-| `GEMINI_API_KEY` | Yes (for `/chat`) | API key for Google Gemini — used by `backend/functions/parser.py` |
+| `DATABASE_PASSWORD` | Yes | MySQL password used in `database.py` |
+| `GEMINI_API_KEY` | Yes | Google Gemini API key for the AI parser |
 
-> **Note:** If `GEMINI_API_KEY` is not provided, the parser will raise an exception when `/chat` is called. You can stub or replace `parse_command_with_gemini` in `parser.py` if you want a non-LLM fallback.
-
-### Frontend
-
-The frontend uses hard-coded `http://localhost:8000` as the API base URL. Move this to a `.env.local` file before deploying:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
+> The frontend API base URL is hard-coded as `http://localhost:8000`. To change it, update `API_BASE` at the top of `students/page.jsx` and `read/[id]/page.jsx`.
 
 ---
 
-## 6. Application Workflow
-
-```mermaid
-sequenceDiagram
-    participant User as User Browser
-    participant Frontend as Next.js UI
-    participant Backend as FastAPI
-    participant Gemini as Gemini LLM
-    participant DB as MySQL
-
-    User->>Frontend: Navigate pages / submit forms / send chat
-    Frontend->>Backend: HTTP request to REST or /chat endpoint
-    alt REST endpoint
-        Backend->>Backend: Validate request / call service logic
-        Backend->>DB: Execute SQL query
-        DB-->>Backend: Return rows or status
-        Backend-->>Frontend: JSON response
-    else /chat endpoint
-        Backend->>Gemini: parse_command_with_gemini(command)
-        Gemini-->>Backend: { action, args }
-        Backend->>DB: Execute resolved CRUD SQL
-        DB-->>Backend: Return rows or status
-        Backend-->>Frontend: { success, message, navigate }
-    end
-    Frontend-->>User: Render UI updates / follow navigate.path
-```
-
-### Full System Flowchart
-
-```mermaid
-flowchart TB
-    A["👤 User<br/>Accesses Student Management Portal"] --> B["🌐 Next.js Frontend"]
-
-    subgraph Frontend["Frontend Layer (Next.js)"]
-        B --> C["Students List Page<br/>/students"]
-        B --> D["Create Student Page<br/>/create"]
-        B --> E["Student Details Page<br/>/read/[id]"]
-        C --> CHAT["AI Student Assistant<br/>chat box"]
-    end
-
-    C --> F["Fetch Student Records"]
-    D --> G["Submit Student Form"]
-    E --> H["Read / Update / Delete Student"]
-    CHAT --> CHATAPI["POST /chat"]
-
-    F --> I["FastAPI API Layer"]
-    G --> I
-    H --> I
-    CHATAPI --> I
-
-    subgraph Backend["Backend Layer (FastAPI)"]
-        I --> J["API Router"]
-        J --> K["GET /students"]
-        J --> L["POST /create"]
-        J --> M["GET /read"]
-        J --> N["PUT /update"]
-        J --> O["DELETE /delete"]
-        J --> CHATROUTE["POST /chat"]
-        CHATROUTE --> CHATBOT["chatbot.py handler"]
-        CHATBOT --> PARSER["parser.py — Gemini LLM"]
-        PARSER --> CHATBOT
-        CHATBOT --> MERGE["Merge update fields<br/>from existing DB record"]
-        K --> P["Pydantic Validation"]
-        L --> P
-        M --> P
-        N --> P
-        O --> P
-        P --> Q["Student Service Functions<br/>functions/students.py"]
-        MERGE --> Q
-    end
-
-    subgraph DatabaseLayer["Database Layer"]
-        Q --> R["MySQL Connection<br/>database.py"]
-        R --> S["Students Table"]
-        S --> T["Execute SQL Queries"]
-        T --> U["INSERT Student"]
-        T --> V["SELECT Student(s)"]
-        T --> W["UPDATE Student"]
-        T --> X["DELETE Student"]
-    end
-
-    U --> Y["Query Result"]
-    V --> Y
-    W --> Y
-    X --> Y
-    Y --> Z["JSON Response Generated"]
-    Z --> AA["HTTP Response Returned"]
-    AA --> AB["Next.js Updates UI / follows navigate.path"]
-    AB --> AC["User Sees Updated Data"]
-    P --> AD["Validation Error"]
-    AD --> AE["422 Validation Response"]
-    AE --> AB
-```
-
----
-
-## 7. API Documentation
+## 6. API Documentation
 
 Base URL: `http://localhost:8000`
 
 ---
 
 ### `GET /`
-
-Health check endpoint.
-
-**Response:**
+Health check.
 ```json
 { "message": "Hello World" }
-```
-
-**Sample request:**
-```bash
-curl http://localhost:8000/
 ```
 
 ---
 
 ### `POST /create`
+Create a student.
 
-Create a new student record.
-
-**Request body:**
+**Body:**
 ```json
 {
-  "id": 1,
-  "name": "Jane Doe",
+  "roll_no": "A101",
+  "name": "Laksh",
   "age": 18,
-  "grade": "12",
-  "address": "123 Main St"
+  "grade": "10",
+  "address": "Vasai"
 }
 ```
 
@@ -409,34 +214,14 @@ Create a new student record.
 { "message": "Student created successfully" }
 ```
 
-**Sample request:**
-```bash
-curl -X POST http://localhost:8000/create \
-  -H "Content-Type: application/json" \
-  -d '{"id": 1, "name": "Jane Doe", "age": 18, "grade": "12", "address": "123 Main St"}'
-```
-
 ---
 
-### `GET /read`
-
-Retrieve a single student record by ID.
-
-**Query parameters:**
-
-| Parameter | Type | Required |
-|---|---|---|
-| `student_id` | int | Yes |
+### `GET /read?student_id=1`
+Read a student by ID.
 
 **Response (found):**
 ```json
-{
-  "id": 1,
-  "name": "Jane Doe",
-  "age": 18,
-  "grade": "12",
-  "address": "123 Main St"
-}
+{ "id": 1, "roll_no": "A101", "name": "Laksh", "age": 18, "grade": "10", "address": "Vasai" }
 ```
 
 **Response (not found):**
@@ -444,26 +229,14 @@ Retrieve a single student record by ID.
 { "message": "Student not found" }
 ```
 
-**Sample request:**
-```bash
-curl "http://localhost:8000/read?student_id=1"
-```
-
 ---
 
 ### `PUT /update`
+Full update — all fields required.
 
-Update an existing student record. All fields must be supplied (for partial updates, use `/chat`).
-
-**Request body:**
+**Body:**
 ```json
-{
-  "id": 1,
-  "name": "Jane Doe",
-  "age": 19,
-  "grade": "12",
-  "address": "456 Elm St"
-}
+{ "id": 1, "roll_no": "A101", "name": "Laksh", "age": 19, "grade": "11", "address": "Virar" }
 ```
 
 **Response:**
@@ -471,358 +244,205 @@ Update an existing student record. All fields must be supplied (for partial upda
 { "message": "Student updated successfully" }
 ```
 
-**Sample request:**
-```bash
-curl -X PUT http://localhost:8000/update \
-  -H "Content-Type: application/json" \
-  -d '{"id": 1, "name": "Jane Doe", "age": 19, "grade": "12", "address": "456 Elm St"}'
-```
+> For partial updates (change only one field), use `/command` instead.
 
 ---
 
-### `DELETE /delete`
+### `DELETE /delete?student_id=1`
+Delete a student.
 
-Delete a student record by ID.
-
-**Query parameters:**
-
-| Parameter | Type | Required |
-|---|---|---|
-| `student_id` | int | Yes |
-
-**Response:**
 ```json
 { "message": "Student deleted successfully" }
-```
-
-**Sample request:**
-```bash
-curl -X DELETE "http://localhost:8000/delete?student_id=1"
 ```
 
 ---
 
 ### `GET /students`
+List all students.
 
-Retrieve all student records.
-
-**Response:**
 ```json
 [
-  {
-    "id": 1,
-    "name": "Jane Doe",
-    "age": 18,
-    "grade": "12",
-    "address": "123 Main St"
-  }
+  { "id": 1, "roll_no": "A101", "name": "Laksh", "age": 18, "grade": "10", "address": "Vasai" },
+  ...
 ]
 ```
 
-**Sample request:**
-```bash
-curl http://localhost:8000/students
-```
-
 ---
 
-### `POST /chat`
+### `POST /command`
+Natural language command → Gemini → CRUD → response.
 
-Accept a natural language command, parse it with the Gemini LLM, execute the resolved CRUD action, and return a concise response with a navigation hint.
+Also aliased as `POST /chat` for backward compatibility.
 
-**Request body:**
+**Body:**
 ```json
-{ "command": "Create student id 2 name Alice age 17 grade B address Pune" }
+{ "command": "delete all students with grade F" }
 ```
 
-**Response (success):**
+**Response:**
 ```json
 {
   "success": true,
-  "message": "Student created successfully",
-  "navigate": { "path": "/students" }
-}
-```
-
-**Response (failure):**
-```json
-{
-  "success": false,
-  "message": "Student not found",
-  "navigate": null
-}
-```
-
-The `navigate.path` field tells the frontend where to route after the command executes. Possible values:
-
-| Action | `navigate.path` |
-|---|---|
-| `create` | `/students` |
-| `read` | `/read/<id>` |
-| `update` | `/students` |
-| `delete` | `/students` |
-| `all_students` | `/students` |
-
-**Sample request:**
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"command": "Show student id 2"}'
-```
-
-**Example chat commands:**
-
-| Command | Action |
-|---|---|
-| `Create student id 2 name Alice age 17 grade B address Pune` | Create |
-| `Show student id 2` | Read (routes to `/read/2`) |
-| `Update student 2 age 18` | Partial update (merges with existing record) |
-| `Delete student 2` | Delete |
-| `List all students` | All students |
-
----
-
-## 8. Complete API Inventory
-
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| GET | `/` | Health check | No |
-| POST | `/create` | Create a student | No |
-| GET | `/read` | Read student by ID | No |
-| PUT | `/update` | Update student (all fields required) | No |
-| DELETE | `/delete` | Delete student by ID | No |
-| GET | `/students` | List all students | No |
-| POST | `/chat` | Natural language command → CRUD action | No |
-
----
-
-## 9. Frontend Pages & Components
-
-### Pages
-
-| Route | Purpose |
-|---|---|
-| `/` | Landing page and entry point to the student portal |
-| `/students` | Searchable list of students with navigation to create; includes the AI Student Assistant chat box |
-| `/create` | Form page for creating a new student record |
-| `/read/[id]` | Student detail page with edit and delete actions |
-
-### Reusable Components
-
-| File | Purpose |
-|---|---|
-| `my-app/components/ui/table.jsx` | Reusable table component for rendering student lists |
-| `my-app/lib/utils.js` | Utility helper for merging CSS class names |
-
-### State Management
-
-- The frontend uses React `useState` and `useEffect` for local state.
-- No global state management library is used.
-- Student data is fetched per page from the backend on component mount.
-- After a chat command succeeds, the frontend refreshes the student list and follows `navigate.path`.
-
-### API Integration Flow
-
-| Page | API Calls |
-|---|---|
-| `create/page.jsx` | `POST http://localhost:8000/create` |
-| `students/page.jsx` | `GET http://localhost:8000/students`, `POST http://localhost:8000/chat` |
-| `read/[id]/page.jsx` | `GET /read`, `PUT /update`, `DELETE /delete` |
-
----
-
-## 10. Database Documentation
-
-### Table: `students`
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | INT | Primary key — unique student identifier |
-| `name` | VARCHAR(255) | Student full name |
-| `age` | INT | Student age |
-| `grade` | VARCHAR(100) | Student grade level |
-| `address` | VARCHAR(255) | Student address |
-
-### Relationships
-
-- No foreign key relationships exist.
-- The database model contains a single table only.
-
-### Constraints
-
-- `id` is the primary key.
-- All fields are required for direct REST calls (`/create`, `/update`).
-- For chat-based updates, missing fields are fetched from the existing DB record and merged before the update is issued.
-
-### ERD
-
-```mermaid
-erDiagram
-    STUDENTS {
-      INT id PK "Primary key"
-      VARCHAR name
-      INT age
-      VARCHAR grade
-      VARCHAR address
-    }
-```
-
----
-
-## 11. Authentication & Authorization
-
-Not implemented in the current codebase.
-
-- No JWT flow exists.
-- No OAuth flow exists.
-- No API key flow exists.
-- No session-based or role-based authorization exists.
-
----
-
-## 12. Error Handling
-
-| Status | Scenario | Example Response |
-|---|---|---|
-| `400 Bad Request` | Creating a student with a duplicate ID | `{"detail": "Student ID 1 already exists"}` |
-| `401 Unauthorized` | Not implemented | — |
-| `403 Forbidden` | Not implemented | — |
-| `404 Not Found` | No dedicated handler; returns message string | `{"message": "Student not found"}` |
-| `422 Unprocessable Entity` | Pydantic validation failure | See below |
-| `500 Internal Server Error` | Unhandled exception | FastAPI default response |
-
-**`/chat` specific errors:**
-
-| Scenario | Response |
-|---|---|
-| `GEMINI_API_KEY` not set | Exception raised in `parser.py` — 500 error |
-| Command cannot be parsed by LLM | `{ "success": false, "message": "Could not parse command", "navigate": null }` |
-| Parsed action references a non-existent student | `{ "success": false, "message": "Student not found", "navigate": null }` |
-
-**422 Validation Error example:**
-```json
-{
-  "detail": [
+  "message": "Deleted 3 students where grade=F",
+  "navigate": { "path": "/students" },
+  "details": [
     {
-      "loc": ["body", "name"],
-      "msg": "field required",
-      "type": "value_error.missing"
+      "function": "delete_where",
+      "success": true,
+      "message": "Deleted 3 students where grade=F",
+      "result": { "deleted": 3 }
     }
-  ],
-  "body": null
+  ]
 }
 ```
 
 ---
 
-## 13. AI Chat Interface
+## 7. AI Chat Interface
 
-The AI Student Assistant is accessible from the `/students` page. It accepts free-form natural language commands and translates them into student CRUD operations.
+The floating chat widget lives in the bottom-right corner of the `/students` page.
 
 ### How it works
 
-1. The user types a command in the chat box on the students page.
-2. The frontend sends `POST /chat` with `{ "command": "..." }`.
-3. `chatbot.py` calls `parser.py`, which sends the command to the Gemini LLM.
-4. The LLM returns a structured JSON object specifying the action (`create`, `read`, `update`, `delete`, `all_students`) and the relevant arguments.
-5. `chatbot.py` resolves the action:
-   - For `update`: reads the existing DB record first, merges provided fields over it, then issues the full update.
-   - For all others: calls the appropriate function in `students.py` directly.
-6. The backend returns `{ success, message, navigate }`. No raw command, arguments, or query results are echoed.
-7. The frontend displays the one-line `message`, refreshes the student list, and routes to `navigate.path`.
-
-### LLM Parser (`backend/functions/parser.py`)
-
-- Uses the `google.genai` client to call the Gemini API.
-- Returns a JSON structure that `chatbot.py` uses to select which CRUD function to call.
-- If you prefer not to use the cloud model, replace `parse_command_with_gemini` with a deterministic parser.
-
-#### Model selection
-
-| Role | Model | Reason |
-|---|---|---|
-| Primary | `gemini-3.5-flash` | Best balance of speed and instruction-following accuracy for structured JSON extraction from short natural language commands. The improved reasoning in 3.5 Flash handles ambiguous phrasings (e.g. `"bump student 3's age by one"`) more reliably than earlier models, and the low latency keeps the chat interface feeling responsive. |
-| Fallback | `gemini-2.5-flash` | Used when 3.5 Flash is unavailable or rate-limited. Nearly as capable for straightforward commands and widely available across Gemini API tiers. |
-
-The model is set in `parser.py`. To switch to the fallback manually, change the model string:
-
-```python
-# Primary
-model = "gemini-3.5-flash"
-
-# Fallback
-model = "gemini-2.5-flash"
+```
+User types command
+      │
+      ▼
+POST /command
+      │
+      ▼
+parser.py → Gemini 2.5 Flash
+      │      (returns structured JSON action)
+      ▼
+chatbot.py → resolve action → SQL
+      │
+      ▼
+{ success, message, navigate, details }
+      │
+      ▼
+Frontend renders result + refreshes table
 ```
 
-### Supported chat actions
+### Supported operations
 
-| Action | Example command |
+| What you say | What happens |
 |---|---|
-| Create | `Create student id 3 name Bob age 16 grade A address Mumbai` |
-| Read | `Show student id 3` / `Get details for student 3` |
-| Update (partial) | `Update student 3 age 17` — only `age` changes; other fields are preserved |
-| Delete | `Delete student 3` / `Remove student with id 3` |
-| List all | `List all students` / `Show everyone` |
+| `Create student roll A101 name Laksh age 18 grade 10 address Vasai` | Creates one student |
+| `Create Alice 17 grade B Pune and Bob 18 grade A Delhi` | Creates two students |
+| `Show student 1` | Reads student #1, shows detail card |
+| `Read students 1, 2 and 3` | Reads three students |
+| `Update student 1 grade to A` | Partial update — only grade changes |
+| `Update Laksh's address to Mumbai` | Updates by name match |
+| `Update all grade B students to grade A` | Bulk update by filter |
+| `Set everyone's address to Delhi` | Updates all students |
+| `Delete student 3` | Deletes one student |
+| `Delete students 4 and 5` | Deletes two students |
+| `Delete all students with grade F` | Bulk delete by filter |
+| `Delete students from Mumbai` | Bulk delete by address |
+| `Delete student named Riya` | Delete by name |
+| `Delete all students` | Clears entire table |
+| `Show all students` | Lists all with count |
+| `Show students with grade A` | Filters by grade |
+| `List students from Mumbai` | Filters by address |
 
-### Navigation hints
+### Supported functions (internal)
 
-After every successful chat action, the backend returns `navigate.path`. The frontend automatically routes to:
+| Function | Triggered by |
+|---|---|
+| `create_student` | Single create |
+| `read_student` | Single read by ID |
+| `update_student` | Single update by ID |
+| `delete_student` | Single delete by ID |
+| `all_students` | List all |
+| `filter_students` | Read with filter |
+| `update_where` | Bulk update matching filter |
+| `delete_where` | Bulk delete matching filter |
+| `delete_all_students` | Delete entire table |
 
-- `/students` — after create, update, delete, or list all
-- `/read/<id>` — after a read action for a specific student
+### Chat response format
 
----
+Each response includes a `details` array — one entry per operation:
 
-## 14. Assumptions & Limitations
+```json
+{
+  "function": "create_student",
+  "success": true,
+  "message": "Student created successfully",
+  "navigate": { "path": "/students" },
+  "result": { ... }
+}
+```
 
-- Database configuration values should be stored in `backend/.env` (not hard-coded).
-- The frontend uses hard-coded `http://localhost:8000` API endpoints — move to `.env.local` before deploying.
-- No authentication or authorization is present.
-- No database migration tools are defined.
-- Direct SQL queries are used instead of an ORM.
-- Production deployment configuration is not provided.
-- Error handling is limited to FastAPI validation, duplicate-ID checks, and basic chat command failure responses.
-- The `/chat` endpoint requires a valid `GEMINI_API_KEY`; the endpoint will error if the key is missing or invalid.
-- The `PUT /update` REST endpoint requires all fields. Partial updates are only supported via `/chat`.
-
----
-
-## 15. Postman Collection
-
-A Postman collection is included as `PostmanCollection.json` in the project root.
-
-### Collection Contents
-
-- `GET /`
-- `POST /create`
-- `GET /read`
-- `PUT /update`
-- `DELETE /delete`
-- `GET /students`
-- `POST /chat`
-
-**Variable:** `base_url` = `http://localhost:8000`
-
-**Authentication:** Not required.
-
-### Import Instructions
-
-1. Open Postman.
-2. Click **Import**.
-3. Select `PostmanCollection.json` from the project root.
-4. Set `base_url` to `http://localhost:8000` if needed.
+The UI shows only what matters: a color-coded operation label + one line of outcome text. Student cards are shown only for read/filter results.
 
 ---
 
-## 16. Submission Readiness Checklist
+## 8. Database
 
-- [x] README completed
-- [x] APIs documented (REST + `/chat`)
-- [x] Setup guide included
-- [x] Environment variables section included
-- [x] Error responses documented
-- [x] AI chat interface documented
-- [x] Navigation hints documented
-- [x] LLM parser documented
-- [x] Postman collection generated (includes `/chat`)
-- [x] Assumptions & limitations noted
+### Table: `students`
+
+| Column | Type | Constraints |
+|---|---|---|
+| `id` | INT | Primary key, auto-increment |
+| `roll_no` | VARCHAR(255) | Not null, unique |
+| `name` | VARCHAR(255) | Not null |
+| `age` | INT | Not null |
+| `grade` | VARCHAR(100) | Not null |
+| `address` | VARCHAR(255) | Not null |
+
+- Single table, no foreign keys
+- All fields required for REST endpoints
+- Chat-based updates read existing record first and merge only the changed fields
+
+---
+
+## 9. Frontend Pages
+
+| Route | Purpose |
+|---|---|
+| `/` | Landing page |
+| `/students` | Student table with search, stats, and floating AI chat widget |
+| `/create` | Form to add a new student |
+| `/read/[id]` | Student detail view with inline edit and delete |
+
+### `/students` page behaviour
+
+- Fetches all students on mount
+- Client-side search filters by name, grade, or ID
+- Clicking any table row navigates to `/read/[id]`
+- After any chat mutation (create / update / delete), the table re-fetches automatically
+- Stats strip shows total count and currently visible count
+
+---
+
+## 10. Error Handling
+
+| Status | Scenario |
+|---|---|
+| `400` | Missing required field (e.g. `student_id` for delete) |
+| `404` | Student not found during update or read |
+| `422` | Pydantic validation failure — missing or wrong-type fields |
+| `500` | Unhandled exception or missing `GEMINI_API_KEY` |
+
+Chat-specific errors return HTTP 200 with `success: false`:
+
+```json
+{
+  "success": false,
+  "message": "Student 99 not found",
+  "navigate": null,
+  "details": [...]
+}
+```
+
+---
+
+## 11. Assumptions & Limitations
+
+- No authentication or authorization is implemented
+- No database migration tooling — schema must be created manually
+- Frontend API base URL (`http://localhost:8000`) is hard-coded; change `API_BASE` in page files before deploying
+- `PUT /update` requires all fields; partial updates only via `/command`
+- The `/command` endpoint requires a valid `GEMINI_API_KEY` — it will return 400 if the key is missing or the Gemini API is unreachable
+- No rate limiting on the `/command` endpoint
+- Bulk operations (`delete_all_students`, `delete_where`, `update_where`) execute individual SQL calls in a loop — not wrapped in a transaction

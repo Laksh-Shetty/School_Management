@@ -42,11 +42,20 @@ async def delete(student_id: int):
 async def get_students():
     return all_students()
 
-@app.post("/chat")
-async def chat(command: dict):
+
+async def _chat_handler(command: dict):
     if "command" not in command:
         return JSONResponse(status_code=400, content={"detail": "Missing 'command' field"})
     return handle_command(command["command"])
+
+@app.post("/chat")
+async def chat(command: dict):
+    return await _chat_handler(command)
+
+@app.post("/command")
+async def command(command: dict):
+    return await _chat_handler(command)
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

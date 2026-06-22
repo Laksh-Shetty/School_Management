@@ -1,83 +1,158 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen py-2 bg-gray-100">
-      <h1 className="text-6xl font-bold text-center pt-8 bg-gradient-to-r from-purple-700 via-blue-500 to-green-500 bg-clip-text text-transparent">
-        Student Management Portal
-      </h1>
+    <main className="min-h-screen bg-white text-black">
+      <section className="max-w-7xl mx-auto px-6 lg:px-12 min-h-screen flex items-center">
+        <div className="grid lg:grid-cols-2 gap-20 items-center w-full">
+          <div>
+            
 
-<div className="min-h-screen flex items-center justify-center px-4 ">
-  <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl flex flex-col md:flex-row w-full max-w-6xl overflow-hidden">
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-black leading-none tracking-tight">
+              Manage
+              <br />
+              Students
+              <br />
+              Smarter.
+            </h1>
 
-    <div className="w-full md:w-3/5 p-8 md:p-12 flex flex-col justify-center">
-      <div className="text-left font-bold text-xl mb-8">
-        <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-          Student
-        </span>{" "}
-        Management
-      </div>
+            <p className="mt-8 text-lg md:text-xl text-zinc-600 max-w-2xl leading-relaxed">
+              A centralized platform for managing student records, tracking
+              academic performance, organizing enrollment data, and maintaining
+              educational information with efficiency and accuracy.
+            </p>
 
-      <div>
-        <h2 className="text-3xl md:text-5xl font-extrabold leading-tight text-gray-800 mb-4">
-          Welcome to the
-          <br />
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-            Student Management Portal
-          </span>
-        </h2>
+            <div className="flex flex-wrap gap-4 mt-10">
+              <Link href="/students">
+                <button className="bg-black text-white px-8 py-4 rounded-xl font-semibold hover:scale-105 transition-all duration-300">
+                  View Students
+                </button>
+              </Link>
 
-        <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full mb-5"></div>
+              <button className="border border-zinc-300 px-8 py-4 rounded-xl font-semibold hover:bg-zinc-100 transition-all duration-300">
+                Learn More
+              </button>
+            </div>
 
-        <p className="text-gray-500 text-base md:text-lg leading-relaxed max-w-lg">
-          Manage student records, track academic information, and organize data
-          efficiently with a modern and powerful platform built for seamless
-          administration.
-        </p>
-      </div>
-    </div>
+            <div className="grid grid-cols-3 gap-8 mt-16">
+              <div>
+                <h3 className="text-4xl font-bold">500+</h3>
+                <p className="text-zinc-500 mt-2">Students</p>
+              </div>
 
-    <div
-      className="
-        w-full md:w-2/5
-        bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600
-        text-white
-        flex flex-col justify-center
-        px-8 md:px-12
-        py-12 md:py-20
-      "
-    >
-      <h2 className="text-3xl md:text-4xl font-bold mb-4">
-        Get Started
-      </h2>
+              <div>
+                <h3 className="text-4xl font-bold">50+</h3>
+                <p className="text-zinc-500 mt-2">Classes</p>
+              </div>
 
-      <div className="w-16 h-1 bg-white rounded-full mb-5"></div>
+              <div>
+                <h3 className="text-4xl font-bold">100%</h3>
+                <p className="text-zinc-500 mt-2">Digital Records</p>
+              </div>
+            </div>
+          </div>
 
-      <p className="text-blue-100 text-base md:text-lg mb-10 leading-relaxed">
-        Start managing student records with ease and keep everything organized
-        in one secure and centralized place.
-      </p>
+          <div className="flex justify-center">
+            <div className="w-full max-w-xl bg-black text-white rounded-3xl p-8 shadow-2xl">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold">Dashboard</h2>
 
-      <Link href="/students" className="w-fit">
-      <button
-        className="
-          bg-white text-blue-600 font-bold
-          py-3 px-8 rounded-full
-          shadow-lg
-          hover:scale-105
-          hover:shadow-xl
-          transition-all duration-300
-          w-fit
-        "
-      >
-        Start Now →
-      </button>
-      </Link>
-    </div>
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-zinc-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-zinc-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-zinc-500"></div>
+                </div>
+              </div>
 
-  </div>
-</div>
-    </div>
+              <div className="space-y-5">
+                <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
+                  <p className="text-zinc-400 text-sm">Total Students</p>
+                  <h3 className="text-5xl font-bold mt-3">526</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
+                    <p className="text-zinc-400 text-sm">Active Classes</p>
+                    <h3 className="text-3xl font-bold mt-3">48</h3>
+                  </div>
+
+                  <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
+                    <p className="text-zinc-400 text-sm">Average Grade</p>
+                    <h3 className="text-3xl font-bold mt-3">A-</h3>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
+                  <p className="text-zinc-400 text-sm mb-4">
+                    Student Record Activity
+                  </p>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span>New Admissions</span>
+                      <span className="font-semibold">+24</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Updated Records</span>
+                      <span className="font-semibold">132</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Graduated Students</span>
+                      <span className="font-semibold">18</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section className="border-t border-zinc-200 py-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <h2 className="text-5xl font-bold text-center mb-16">
+            Everything You Need
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="border border-zinc-200 rounded-3xl p-8">
+              <h3 className="text-2xl font-bold mb-4">
+                Student Records
+              </h3>
+
+              <p className="text-zinc-600 leading-relaxed">
+                Store and manage student information including personal,
+                academic, and enrollment details in one place.
+              </p>
+            </div>
+
+            <div className="border border-zinc-200 rounded-3xl p-8">
+              <h3 className="text-2xl font-bold mb-4">
+                Academic Tracking
+              </h3>
+
+              <p className="text-zinc-600 leading-relaxed">
+                Monitor grades, performance metrics, attendance, and academic
+                progress with ease.
+              </p>
+            </div>
+
+            <div className="border border-zinc-200 rounded-3xl p-8">
+              <h3 className="text-2xl font-bold mb-4">
+                Secure Management
+              </h3>
+
+              <p className="text-zinc-600 leading-relaxed">
+                Maintain accurate and organized records through a secure and
+                scalable management system.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

@@ -9,12 +9,13 @@ export default function Page() {
 
   const [student, setStudent] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  
-  const [editedStudent, setEditedStudent] = useState({ 
-    name: "", 
-    grade: "", 
+
+  const [editedStudent, setEditedStudent] = useState({
+    roll_no: "",
+    name: "",
+    grade: "",
     age: "",
-    address: "" 
+    address: "",
   });
 
   useEffect(() => {
@@ -24,36 +25,37 @@ export default function Page() {
           `http://localhost:8000/read?student_id=${id}`
         );
         const data = await response.json();
+
         setStudent(data);
-        
-        setEditedStudent({ 
-          name: data.name, 
-          grade: data.grade, 
+
+        setEditedStudent({
+          roll_no: data.roll_no || "",
+          name: data.name,
+          grade: data.grade,
           age: data.age,
-          address: data.address || "" 
+          address: data.address || "",
         });
       } catch (error) {
         console.error("Error fetching student data:", error);
       }
     };
 
-    if (id) {
-      fetchStudent();
-    }
+    if (id) fetchStudent();
   }, [id]);
 
   const handleUpdate = async () => {
     try {
       const payload = {
-        id: parseInt(id), 
+        id: parseInt(id),
+        roll_no: editedStudent.roll_no,
         name: editedStudent.name,
         grade: editedStudent.grade,
-        age: parseInt(editedStudent.age), 
-        address: editedStudent.address 
+        age: parseInt(editedStudent.age),
+        address: editedStudent.address,
       };
 
       const response = await fetch(`http://localhost:8000/update`, {
-        method: "PUT", 
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -63,9 +65,6 @@ export default function Page() {
       if (response.ok) {
         setStudent({ id: student.id, ...editedStudent });
         setIsEditing(false);
-        alert("Student updated successfully!");
-      } else {
-        alert("Failed to update student.");
       }
     } catch (error) {
       console.error("Error updating student:", error);
@@ -76,15 +75,15 @@ export default function Page() {
     if (!confirm("Are you sure you want to delete this student?")) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/delete?student_id=${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8000/delete?student_id=${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
-        alert("Student deleted successfully!");
-        router.push("/students"); 
-      } else {
-        alert("Failed to delete student.");
+        router.push("/students");
       }
     } catch (error) {
       console.error("Error deleting student:", error);
@@ -93,124 +92,197 @@ export default function Page() {
 
   if (!student) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="min-h-screen flex items-center justify-center bg-white text-black text-xl">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-10 max-w-lg">
-
-      <div>
+    <div className="min-h-screen bg-white text-black">
+      <div className="max-w-6xl mx-auto px-6 py-12">
         <button
           onClick={() => router.push("/students")}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-md transition mb-6 justify-self-end"
+          className="border border-black px-5 py-2 rounded-xl hover:bg-black hover:text-white transition-all duration-300 mb-10"
         >
-          Back to Students List
+          ← Back to Students
         </button>
-      </div>
-      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-        Student Details
-      </h1>
 
-      <div className="rounded-xl border p-6 shadow-lg bg-white space-y-4">
-        <p>
-          <strong>ID:</strong> {student.id}
-        </p>
+        <div className="grid lg:grid-cols-2 gap-10">
+          <div className="bg-black text-white rounded-3xl p-10">
+            <p className="uppercase tracking-[0.3em] text-zinc-400 text-sm">
+              Student Profile
+            </p>
 
-        {isEditing ? (
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border p-2 text-black"
-                value={editedStudent.name}
-                onChange={(e) => setEditedStudent({ ...editedStudent, name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Grade</label>
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border p-2 text-black"
-                value={editedStudent.grade}
-                onChange={(e) => setEditedStudent({ ...editedStudent, grade: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Age</label>
-              <input
-                type="number"
-                className="mt-1 block w-full rounded-md border p-2 text-black"
-                value={editedStudent.age}
-                onChange={(e) => setEditedStudent({ ...editedStudent, age: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Address</label>
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border p-2 text-black"
-                value={editedStudent.address}
-                onChange={(e) => setEditedStudent({ ...editedStudent, address: e.target.value })}
-                required
-              />
+            <h1 className="text-5xl md:text-6xl font-black mt-4">
+              {student.name}
+            </h1>
+
+            <div className="mt-10 space-y-8">
+              <div>
+                <p className="text-zinc-500 text-sm">Student ID</p>
+                <h3 className="text-3xl font-bold">{student.id}</h3>
+              </div>
+
+                <div>
+                  <p className="text-zinc-500 text-sm">Roll Number</p>
+                  <h3 className="text-3xl font-bold">{student.roll_no || "—"}</h3>
+                </div>
+
+              <div>
+                <p className="text-zinc-500 text-sm">Age</p>
+                <h3 className="text-3xl font-bold">{student.age}</h3>
+              </div>
+
+              <div>
+                <p className="text-zinc-500 text-sm">Address</p>
+                <h3 className="text-2xl font-semibold">
+                  {student.address || "Not Provided"}
+                </h3>
+              </div>
             </div>
           </div>
-        ) : (
-          <>
-            <p>
-              <strong>Name:</strong> {student.name}
-            </p>
-            <p>
-              <strong>Grade:</strong> {student.grade}
-            </p>
-            <p>
-              <strong>Age:</strong> {student.age}
-            </p>
-            <p>
-              <strong>Address:</strong> {student.address || "No address provided"}
-            </p>
-          </>
-        )}
 
-        <div className="flex space-x-3 pt-4 border-t">
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleUpdate}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-md transition"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition"
-              >
-                Update
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition"
-              >
-                Delete
-              </button>
-            </>
-          )}
+          <div className="border border-zinc-200 rounded-3xl p-10 shadow-sm">
+            <h2 className="text-4xl font-bold mb-8">
+              {isEditing ? "Edit Student" : "Student Information"}
+            </h2>
+
+            {isEditing ? (
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm text-zinc-500">Roll Number</label>
+                  <input
+                    type="text"
+                    value={editedStudent.roll_no}
+                    onChange={(e) =>
+                      setEditedStudent({
+                        ...editedStudent,
+                        roll_no: e.target.value,
+                      })
+                    }
+                    className="w-full mt-2 border border-zinc-300 rounded-xl px-4 py-3 outline-none focus:border-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-zinc-500">Name</label>
+                  <input
+                    type="text"
+                    value={editedStudent.name}
+                    onChange={(e) =>
+                      setEditedStudent({
+                        ...editedStudent,
+                        name: e.target.value,
+                      })
+                    }
+                    className="w-full mt-2 border border-zinc-300 rounded-xl px-4 py-3 outline-none focus:border-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-zinc-500">Grade</label>
+                  <input
+                    type="text"
+                    value={editedStudent.grade}
+                    onChange={(e) =>
+                      setEditedStudent({
+                        ...editedStudent,
+                        grade: e.target.value,
+                      })
+                    }
+                    className="w-full mt-2 border border-zinc-300 rounded-xl px-4 py-3 outline-none focus:border-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-zinc-500">Age</label>
+                  <input
+                    type="number"
+                    value={editedStudent.age}
+                    onChange={(e) =>
+                      setEditedStudent({
+                        ...editedStudent,
+                        age: e.target.value,
+                      })
+                    }
+                    className="w-full mt-2 border border-zinc-300 rounded-xl px-4 py-3 outline-none focus:border-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-zinc-500">Address</label>
+                  <input
+                    type="text"
+                    value={editedStudent.address}
+                    onChange={(e) =>
+                      setEditedStudent({
+                        ...editedStudent,
+                        address: e.target.value,
+                      })
+                    }
+                    className="w-full mt-2 border border-zinc-300 rounded-xl px-4 py-3 outline-none focus:border-black"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={handleUpdate}
+                    className="flex-1 bg-black text-white py-3 rounded-xl hover:bg-zinc-800 transition"
+                  >
+                    Save Changes
+                  </button>
+
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="flex-1 border border-zinc-300 py-3 rounded-xl hover:bg-zinc-100 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                <div className="border-b pb-5">
+                  <p className="text-zinc-500 mb-1">Name</p>
+                  <h3 className="text-2xl font-semibold">{student.name}</h3>
+                </div>
+
+                <div className="border-b pb-5">
+                  <p className="text-zinc-500 mb-1">Grade</p>
+                  <h3 className="text-2xl font-semibold">{student.grade}</h3>
+                </div>
+
+                <div className="border-b pb-5">
+                  <p className="text-zinc-500 mb-1">Age</p>
+                  <h3 className="text-2xl font-semibold">{student.age}</h3>
+                </div>
+
+                <div className="border-b pb-5">
+                  <p className="text-zinc-500 mb-1">Address</p>
+                  <h3 className="text-2xl font-semibold">
+                    {student.address || "Not Provided"}
+                  </h3>
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex-1 bg-black text-white py-3 rounded-xl hover:bg-zinc-800 transition"
+                  >
+                    Update Student
+                  </button>
+
+                  <button
+                    onClick={handleDelete}
+                    className="flex-1 border border-black py-3 rounded-xl hover:bg-black hover:text-white transition"
+                  >
+                    Delete Student
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

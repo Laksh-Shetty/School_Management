@@ -6,12 +6,12 @@ import mysql.connector
 def create_student(student):
     try:
         query = """
-        INSERT INTO students(id, name, age, grade, address)
+        INSERT INTO students(roll_no, name, age, grade, address)
         VALUES (%s, %s, %s, %s, %s)
         """
 
         values = (
-            student.id,
+            student.roll_no,
             student.name,
             student.age,
             student.grade,
@@ -26,7 +26,7 @@ def create_student(student):
     except mysql.connector.IntegrityError:
         raise HTTPException(
             status_code=400,
-            detail=f"Student ID {student.id} already exists"
+            detail=f"Student with roll number {student.roll_no} already exists"
         )
 
 def read_student(student_id):
@@ -42,11 +42,12 @@ def read_student(student_id):
 def update_student(student):
     query = """
     UPDATE students
-    SET name = %s, age = %s, grade = %s, address = %s
+    SET roll_no = %s, name = %s, age = %s, grade = %s, address = %s
     WHERE id = %s
     """
 
     values = (
+        student.roll_no,
         student.name,
         student.age,
         student.grade,
