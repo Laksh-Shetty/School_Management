@@ -44,6 +44,41 @@ FastAPI (port 8000)
          MySQL Database
 ```
 
+### Architecture Flowchart
+
+```mermaid
+flowchart TD
+    User(["👤 User / Browser\n(Next.js — port 3000)"])
+
+    subgraph Frontend ["Frontend — Next.js"]
+        UI["UI Pages\n/students · /create · /read/id"]
+        Chat["Floating AI Chat Widget"]
+    end
+
+    subgraph Backend ["Backend — FastAPI (port 8000)"]
+        REST["REST Endpoints\nGET /students\nPOST /create\nGET /read\nPUT /update\nDELETE /delete"]
+        CMD["POST /command\n(also /chat)"]
+        Gemini["Google Gemini 2.5 Flash\nNatural Language Parser"]
+        CRUD["CRUD Functions\nstudents.py · chatbot.py"]
+    end
+
+    DB[("🗄️ MySQL Database\nschool_management.students")]
+
+    User --> UI
+    User --> Chat
+    UI -- "Direct REST calls" --> REST
+    Chat -- "Plain English command" --> CMD
+    CMD --> Gemini
+    Gemini -- "Structured JSON action" --> CRUD
+    REST --> CRUD
+    CRUD --> DB
+    DB -- "Query result" --> CRUD
+    CRUD -- "JSON response" --> REST
+    CRUD -- "JSON response" --> CMD
+    REST -- "Render / refresh table" --> UI
+    CMD -- "Render result + refresh table" --> Chat
+```
+
 ### Key Features
 
 | Feature | Detail |
@@ -323,6 +358,42 @@ chatbot.py → resolve action → SQL
 Frontend renders result + refreshes table
 ```
 
+### AI Chat Flow (Yes/No Decision Flowchart)
+
+```mermaid
+flowchart TD
+    Start(["User types command in chat"])
+    Post["POST /command\nsent to FastAPI"]
+    KeyCheck{"GEMINI_API_KEY\npresent?"}
+    KeyErr["❌ Return HTTP 400\nMissing API key"]
+
+    Gemini["Gemini 2.5 Flash\nparses command"]
+    ParseOK{"Parsed\nsuccessfully?"}
+    ParseErr["❌ Return HTTP 500\nGemini unreachable / parse error"]
+
+    Action["Resolve action type\nchatbot.py"]
+    isBulk{"Bulk\noperation?"}
+
+    Bulk["Execute bulk SQL\ndelete_where / update_where\n/ delete_all_students"]
+    Single["Execute single SQL\ncreate / read / update / delete"]
+
+    SQLOK{"SQL\nsucceeded?"}
+    SQLErr["success: false\nmessage: error detail\nHTTP 200"]
+    Success["success: true\nmessage + navigate + details\nHTTP 200"]
+
+    Render["Frontend renders result\n+ auto-refreshes table"]
+
+    Start --> Post --> KeyCheck
+    KeyCheck -- "No" --> KeyErr
+    KeyCheck -- "Yes" --> Gemini --> ParseOK
+    ParseOK -- "No" --> ParseErr
+    ParseOK -- "Yes" --> Action --> isBulk
+    isBulk -- "Yes" --> Bulk --> SQLOK
+    isBulk -- "No" --> Single --> SQLOK
+    SQLOK -- "No" --> SQLErr --> Render
+    SQLOK -- "Yes" --> Success --> Render
+```
+
 ### Supported operations
 
 | What you say | What happens |
@@ -416,6 +487,44 @@ The UI shows only what matters: a color-coded operation label + one line of outc
 ---
 
 ## 10. Error Handling
+
+### Error Type Flowchart
+
+```mermaid
+flowchart TD
+    Req(["Incoming API Request"])
+
+    MissingField{"Required field\nmissing?"}
+    E400["🔴 HTTP 400\nBad Request\ne.g. missing student_id\nor GEMINI_API_KEY"]
+
+    NotFound{"Student\nexists?"}
+    E404["🟠 HTTP 404\nNot Found\nStudent not found\nduring read / update"]
+
+    PydanticOK{"Pydantic\nvalidation passes?"}
+    E422["🟡 HTTP 422\nUnprocessable Entity\nWrong type or missing\nrequired field in body"]
+
+    ServerOK{"Internal logic\nsuccessful?"}
+    E500["🔴 HTTP 500\nInternal Server Error\nUnhandled exception or\nGemini API unreachable"]
+
+    ChatOp{"Is it a\n/command request?"}
+    ChatFail["⚪ HTTP 200 — success: false\nChat-level error\ne.g. Student 99 not found\nreturned in response body"]
+
+    OK["✅ HTTP 200\nSuccess response"]
+
+    Req --> MissingField
+    MissingField -- "Yes" --> E400
+    MissingField -- "No" --> PydanticOK
+    PydanticOK -- "No" --> E422
+    PydanticOK -- "Yes" --> NotFound
+    NotFound -- "No" --> ChatOp
+    ChatOp -- "Yes /command" --> ChatFail
+    ChatOp -- "No REST" --> E404
+    NotFound -- "Yes" --> ServerOK
+    ServerOK -- "No" --> E500
+    ServerOK -- "Yes" --> OK
+```
+
+### Error Reference Table
 
 | Status | Scenario |
 |---|---|
