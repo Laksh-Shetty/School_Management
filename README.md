@@ -1,6 +1,6 @@
 # Ira-FastAPI — Student Management System
 
-A full-stack student management application with a **Next.js** frontend, **FastAPI** backend, and **MySQL** database. Includes an AI-powered floating chat assistant that accepts natural language commands and executes CRUD operations in real time.
+A full-stack student management app with a **Next.js** frontend, **FastAPI** backend, and **MySQL** database. Includes an AI-powered floating chat assistant that takes plain English commands and runs them instantly.
 
 ---
 
@@ -25,8 +25,8 @@ A full-stack student management application with a **Next.js** frontend, **FastA
 Ira-FastAPI is an admin portal for managing student records. The core workflow:
 
 - View, search, create, edit, and delete students through a clean web UI
-- Use the **floating AI assistant** on the students page to perform any operation in plain English
-- The backend parses natural language via **Google Gemini**, executes the right SQL, and returns a structured response the frontend renders instantly
+- Use the **floating AI assistant** on the students page to do anything in plain English
+- The backend parses the command using **Google Gemini**, runs the right database query, and sends back a result the frontend shows instantly
 
 ### Architecture
 
@@ -38,7 +38,7 @@ Next.js (port 3000)
 FastAPI (port 8000)
       │
       ├── /students, /create, /read, /update, /delete  ← direct REST
-      └── /command  ← natural language → Gemini → CRUD
+      └── /command  ← plain English → Gemini → database
               │
               ▼
          MySQL Database
@@ -48,7 +48,7 @@ FastAPI (port 8000)
 
 ```mermaid
 flowchart TD
-    User(["👤 User / Browser\n(Next.js — port 3000)"])
+    User(["User / Browser\nNext.js — port 3000"])
 
     subgraph Frontend ["Frontend — Next.js"]
         UI["UI Pages\n/students · /create · /read/id"]
@@ -57,19 +57,19 @@ flowchart TD
 
     subgraph Backend ["Backend — FastAPI (port 8000)"]
         REST["REST Endpoints\nGET /students\nPOST /create\nGET /read\nPUT /update\nDELETE /delete"]
-        CMD["POST /command\n(also /chat)"]
+        CMD["POST /command"]
         Gemini["Google Gemini 2.5 Flash\nNatural Language Parser"]
-        CRUD["CRUD Functions\nstudents.py · chatbot.py"]
+        CRUD["Function Handler\nstudents.py · chatbot.py"]
     end
 
-    DB[("🗄️ MySQL Database\nschool_management.students")]
+    DB[("MySQL Database\nschool_management.students")]
 
     User --> UI
     User --> Chat
     UI -- "Direct REST calls" --> REST
     Chat -- "Plain English command" --> CMD
     CMD --> Gemini
-    Gemini -- "Structured JSON action" --> CRUD
+    Gemini -- "Structured JSON function call" --> CRUD
     REST --> CRUD
     CRUD --> DB
     DB -- "Query result" --> CRUD
@@ -83,12 +83,14 @@ flowchart TD
 
 | Feature | Detail |
 |---|---|
-| Student CRUD | Create, read, update, delete via REST or AI chat |
-| Bulk operations | Delete all, delete by filter, update by filter via chat |
-| AI chat | Floating widget — natural language → Gemini → SQL |
-| Live table refresh | Table auto-updates after every chat mutation |
-| Search | Client-side filter by name, grade, or ID |
-| Partial updates | Chat merges only changed fields; existing fields preserved |
+| Student CRUD | Create, read, update, delete via form UI or AI chat |
+| 25+ AI functions | Covers everything from search to bulk edits to analytics |
+| Bulk operations | Update or delete many students at once using a filter |
+| Analytics | Average age, grade breakdown, oldest, youngest, grouping by city |
+| Smart updates | Chat only changes the fields you mention — the rest stay as they are |
+| Live table refresh | Table updates automatically after every chat command |
+| Help command | Type "help" in chat to see all available commands with examples |
+| Search | Filter the table by name, grade, or ID instantly |
 
 ---
 
@@ -113,11 +115,11 @@ Ira-FastAPI/
 │   ├── main.py                  # FastAPI app, routes, CORS, error handlers
 │   ├── database.py              # MySQL connection
 │   ├── requirements.txt
-│   ├── .env                     # DB password + Gemini key (not committed)
+│   ├── .env                     # DB credentials + Gemini key (not committed)
 │   ├── functions/
-│   │   ├── students.py          # CRUD SQL functions
-│   │   ├── parser.py            # Gemini LLM parser
-│   │   └── chatbot.py           # Command handler (routing + bulk ops)
+│   │   ├── students.py          # Core SQL functions
+│   │   ├── parser.py            # Gemini parser + system prompt
+│   │   └── chatbot.py           # Routes commands to the right function
 │   └── schema/
 │       └── student.py           # Pydantic Student model
 │
@@ -125,8 +127,8 @@ Ira-FastAPI/
     ├── app/
     │   ├── page.js              # Landing page
     │   ├── layout.js
-    │   ├── students/page.jsx    # Main dashboard + floating AI chat
-    │   ├── create/page.jsx      # Create student form
+    │   ├── students/page.jsx    # Main table + floating AI chat
+    │   ├── create/page.jsx      # Add student form
     │   └── read/[id]/page.jsx   # Student detail / edit / delete
     ├── components/
     │   └── ui/table.jsx
@@ -144,15 +146,12 @@ Ira-FastAPI/
 - Node.js 18+
 - MySQL 8+
 
----
-
 ### Backend
 
 ```bash
 cd backend
 python -m venv venv
 
-# Activate
 source venv/Scripts/activate      # Mac / Linux / WSL
 .\venv\Scripts\Activate.ps1       # PowerShell
 venv\Scripts\activate             # CMD
@@ -165,8 +164,6 @@ Create `.env` (see [Environment Variables](#5-environment-variables)), set up My
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
-
----
 
 ### MySQL Setup
 
@@ -183,8 +180,6 @@ CREATE TABLE students (
   address  VARCHAR(255) NOT NULL
 );
 ```
-
----
 
 ### Frontend
 
@@ -212,7 +207,7 @@ GEMINI_API_KEY=your_gemini_api_key
 | `DATABASE_PASSWORD` | Yes | MySQL password used in `database.py` |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key for the AI parser |
 
-> The frontend API base URL is hard-coded as `http://localhost:8000`. To change it, update `API_BASE` at the top of `students/page.jsx` and `read/[id]/page.jsx`.
+> The frontend talks to `http://localhost:8000` by default. To change this, update `API_BASE` at the top of `students/page.jsx` and `read/[id]/page.jsx`.
 
 ---
 
@@ -220,100 +215,70 @@ GEMINI_API_KEY=your_gemini_api_key
 
 Base URL: `http://localhost:8000`
 
----
-
 ### `GET /`
 Health check.
 ```json
 { "message": "Hello World" }
 ```
 
----
-
 ### `POST /create`
-Create a student.
+Add a new student.
 
 **Body:**
 ```json
-{
-  "roll_no": "A101",
-  "name": "Laksh",
-  "age": 18,
-  "grade": "10",
-  "address": "Vasai"
-}
+{ "roll_no": "A101", "name": "Laksh", "age": 18, "grade": "A", "address": "Vasai" }
 ```
-
 **Response:**
 ```json
 { "message": "Student created successfully" }
 ```
 
----
-
 ### `GET /read?student_id=1`
-Read a student by ID.
+Get one student by ID.
 
 **Response (found):**
 ```json
-{ "id": 1, "roll_no": "A101", "name": "Laksh", "age": 18, "grade": "10", "address": "Vasai" }
+{ "id": 1, "roll_no": "A101", "name": "Laksh", "age": 18, "grade": "A", "address": "Vasai" }
 ```
-
 **Response (not found):**
 ```json
 { "message": "Student not found" }
 ```
 
----
-
 ### `PUT /update`
-Full update — all fields required.
+Update a student — all fields required.
 
 **Body:**
 ```json
-{ "id": 1, "roll_no": "A101", "name": "Laksh", "age": 19, "grade": "11", "address": "Virar" }
+{ "id": 1, "roll_no": "A101", "name": "Laksh", "age": 19, "grade": "A", "address": "Virar" }
 ```
-
 **Response:**
 ```json
 { "message": "Student updated successfully" }
 ```
 
-> For partial updates (change only one field), use `/command` instead.
-
----
+> To update only one field (e.g. just the grade), use `/command` instead.
 
 ### `DELETE /delete?student_id=1`
-Delete a student.
-
 ```json
 { "message": "Student deleted successfully" }
 ```
 
----
-
 ### `GET /students`
-List all students.
-
+Get all students.
 ```json
 [
-  { "id": 1, "roll_no": "A101", "name": "Laksh", "age": 18, "grade": "10", "address": "Vasai" },
-  ...
+  { "id": 1, "roll_no": "A101", "name": "Laksh", "age": 18, "grade": "A", "address": "Vasai" }
 ]
 ```
 
----
-
 ### `POST /command`
-Natural language command → Gemini → CRUD → response.
-
-Also aliased as `POST /chat` for backward compatibility.
+Send a plain English command. Gemini figures out what to do and runs it.
 
 **Body:**
 ```json
 { "command": "delete all students with grade F" }
 ```
-
 **Response:**
 ```json
 {
@@ -322,7 +287,7 @@ Also aliased as `POST /chat` for backward compatibility.
   "navigate": { "path": "/students" },
   "details": [
     {
-      "function": "delete_where",
+      "function": "deletewhere",
       "success": true,
       "message": "Deleted 3 students where grade=F",
       "result": { "deleted": 3 }
@@ -335,116 +300,115 @@ Also aliased as `POST /chat` for backward compatibility.
 
 ## 7. AI Chat Interface
 
-The floating chat widget lives in the bottom-right corner of the `/students` page.
+The floating chat widget is in the bottom-right corner of the `/students` page.
 
 ### How it works
 
 ```
-User types command
+User types a command
       │
       ▼
 POST /command
       │
       ▼
-parser.py → Gemini 2.5 Flash
-      │      (returns structured JSON action)
+parser.py sends it to Gemini 2.5 Flash
+      │   Gemini returns a JSON function call
       ▼
-chatbot.py → resolve action → SQL
+chatbot.py runs the right function against the database
       │
       ▼
 { success, message, navigate, details }
       │
       ▼
-Frontend renders result + refreshes table
+Frontend shows the result and refreshes the table
 ```
 
-### AI Chat Flow (Yes/No Decision Flowchart)
+### All 25+ supported functions
 
-```mermaid
-flowchart TD
-    Start(["User types command in chat"])
-    Post["POST /command\nsent to FastAPI"]
-    KeyCheck{"GEMINI_API_KEY\npresent?"}
-    KeyErr["❌ Return HTTP 400\nMissing API key"]
+#### CRUD — basic operations
+| Function | Example prompt |
+|---|---|
+| `add` | `add student roll A101 name Laksh age 20 grade A address Mumbai` |
+| `get` | `get student 1` |
+| `edit` | `update student 1 age to 21` |
+| `remove` | `delete student 1` |
 
-    Gemini["Gemini 2.5 Flash\nparses command"]
-    ParseOK{"Parsed\nsuccessfully?"}
-    ParseErr["❌ Return HTTP 500\nGemini unreachable / parse error"]
+#### List & Filter
+| Function | Example prompt |
+|---|---|
+| `all` | `show all students` |
+| `filter` | `show students with grade A` |
+| `advfilter` | `show students where grade is A and age is greater than 18` |
+| `search` | `search students named ri` |
+| `byroll` | `find student with roll number A101` |
+| `exists` | `does student with roll A101 exist` |
+| `duplicates` | `find duplicate names` |
+| `sort` | `sort students by age descending` |
+| `page` | `show page 1 with 5 students per page` |
 
-    Action["Resolve action type\nchatbot.py"]
-    isBulk{"Bulk\noperation?"}
+#### Analytics
+| Function | Example prompt |
+|---|---|
+| `count` | `how many students are there` |
+| `avgage` | `what is the average age of grade A students` |
+| `grades` | `show grade breakdown` |
+| `oldest` | `who is the oldest grade A student` |
+| `youngest` | `who is the youngest student older than 18` |
+| `bycity` | `group students by city` |
+| `top` | `show top students with grade B or better` |
+| `summary` | `generate summary report` |
 
-    Bulk["Execute bulk SQL\ndelete_where / update_where\n/ delete_all_students"]
-    Single["Execute single SQL\ncreate / read / update / delete"]
+#### Bulk operations
+| Function | Example prompt |
+|---|---|
+| `addmany` | `add students roll A102 name Riya age 21 grade B address Pune and roll A103 name Jay age 22 grade C address Delhi` |
+| `editwhere` | `update all grade B students to grade A` |
+| `deletewhere` | `delete all students with grade F` |
+| `deleteall` | `delete all students` |
+| `promote` | `promote all C grade students to B` |
+| `addyear` | `add a year to all students age` |
+| `setfield` | `set address to Delhi for all grade A students` |
+| `swapgrade` | `swap grades between student 1 and student 2` |
+| `archive` | `archive student 1` |
 
-    SQLOK{"SQL\nsucceeded?"}
-    SQLErr["success: false\nmessage: error detail\nHTTP 200"]
-    Success["success: true\nmessage + navigate + details\nHTTP 200"]
+#### Utility
+| Function | Example prompt |
+|---|---|
+| `help` | `help` / `what can you do` / `show features` |
 
-    Render["Frontend renders result\n+ auto-refreshes table"]
+### Smart update behaviour
 
-    Start --> Post --> KeyCheck
-    KeyCheck -- "No" --> KeyErr
-    KeyCheck -- "Yes" --> Gemini --> ParseOK
-    ParseOK -- "No" --> ParseErr
-    ParseOK -- "Yes" --> Action --> isBulk
-    isBulk -- "Yes" --> Bulk --> SQLOK
-    isBulk -- "No" --> Single --> SQLOK
-    SQLOK -- "No" --> SQLErr --> Render
-    SQLOK -- "Yes" --> Success --> Render
+When you say something like `update student 1 grade to A`, the system:
+1. Fetches the full student record from the database
+2. Replaces only the grade with the new value
+3. Saves everything else exactly as it was
+
+So you never accidentally lose a student's name, age, or address just because you only mentioned one field.
+
+### oldest / youngest with extra conditions
+
+Both `oldest` and `youngest` support an optional grade filter and age conditions together:
+
 ```
-
-### Supported operations
-
-| What you say | What happens |
-|---|---|
-| `Create student roll A101 name Laksh age 18 grade 10 address Vasai` | Creates one student |
-| `Create Alice 17 grade B Pune and Bob 18 grade A Delhi` | Creates two students |
-| `Show student 1` | Reads student #1, shows detail card |
-| `Read students 1, 2 and 3` | Reads three students |
-| `Update student 1 grade to A` | Partial update — only grade changes |
-| `Update Laksh's address to Mumbai` | Updates by name match |
-| `Update all grade B students to grade A` | Bulk update by filter |
-| `Set everyone's address to Delhi` | Updates all students |
-| `Delete student 3` | Deletes one student |
-| `Delete students 4 and 5` | Deletes two students |
-| `Delete all students with grade F` | Bulk delete by filter |
-| `Delete students from Mumbai` | Bulk delete by address |
-| `Delete student named Riya` | Delete by name |
-| `Delete all students` | Clears entire table |
-| `Show all students` | Lists all with count |
-| `Show students with grade A` | Filters by grade |
-| `List students from Mumbai` | Filters by address |
-
-### Supported functions (internal)
-
-| Function | Triggered by |
-|---|---|
-| `create_student` | Single create |
-| `read_student` | Single read by ID |
-| `update_student` | Single update by ID |
-| `delete_student` | Single delete by ID |
-| `all_students` | List all |
-| `filter_students` | Read with filter |
-| `update_where` | Bulk update matching filter |
-| `delete_where` | Bulk delete matching filter |
-| `delete_all_students` | Delete entire table |
+"youngest student"                       → all students
+"youngest grade A student"               → only grade A students
+"youngest grade A student older than 22" → grade A and age > 22
+"oldest student under 25"                → age < 25 only
+```
 
 ### Chat response format
 
-Each response includes a `details` array — one entry per operation:
+Each response has a `details` array with one entry per operation run:
 
 ```json
 {
-  "function": "create_student",
+  "function": "add",
   "success": true,
   "message": "Student created successfully",
   "navigate": { "path": "/students" },
   "result": { ... }
 }
 ```
-
-The UI shows only what matters: a color-coded operation label + one line of outcome text. Student cards are shown only for read/filter results.
 
 ---
 
@@ -463,7 +427,7 @@ The UI shows only what matters: a color-coded operation label + one line of outc
 
 - Single table, no foreign keys
 - All fields required for REST endpoints
-- Chat-based updates read existing record first and merge only the changed fields
+- `archive` marks a student as inactive by setting their grade to `ARCHIVED`
 
 ---
 
@@ -472,68 +436,31 @@ The UI shows only what matters: a color-coded operation label + one line of outc
 | Route | Purpose |
 |---|---|
 | `/` | Landing page |
-| `/students` | Student table with search, stats, and floating AI chat widget |
+| `/students` | Student table with search, stats, and floating AI chat |
 | `/create` | Form to add a new student |
-| `/read/[id]` | Student detail view with inline edit and delete |
+| `/read/[id]` | Student detail with edit and delete |
 
-### `/students` page behaviour
+### `/students` page
 
-- Fetches all students on mount
-- Client-side search filters by name, grade, or ID
-- Clicking any table row navigates to `/read/[id]`
-- After any chat mutation (create / update / delete), the table re-fetches automatically
-- Stats strip shows total count and currently visible count
+- Loads all students on open
+- Search bar filters by name, grade, or ID as you type
+- Clicking a row opens that student's detail page
+- Table refreshes automatically after any chat command that changes data
+- Stats bar shows total students and how many are currently visible
+- Chat shows rich results depending on the command — student cards for lists, a grade table for `grades`, city counts for `bycity`, a full stats block for `summary`, and clickable example commands for `help`
 
 ---
 
 ## 10. Error Handling
 
-### Error Type Flowchart
-
-```mermaid
-flowchart TD
-    Req(["Incoming API Request"])
-
-    MissingField{"Required field\nmissing?"}
-    E400["🔴 HTTP 400\nBad Request\ne.g. missing student_id\nor GEMINI_API_KEY"]
-
-    NotFound{"Student\nexists?"}
-    E404["🟠 HTTP 404\nNot Found\nStudent not found\nduring read / update"]
-
-    PydanticOK{"Pydantic\nvalidation passes?"}
-    E422["🟡 HTTP 422\nUnprocessable Entity\nWrong type or missing\nrequired field in body"]
-
-    ServerOK{"Internal logic\nsuccessful?"}
-    E500["🔴 HTTP 500\nInternal Server Error\nUnhandled exception or\nGemini API unreachable"]
-
-    ChatOp{"Is it a\n/command request?"}
-    ChatFail["⚪ HTTP 200 — success: false\nChat-level error\ne.g. Student 99 not found\nreturned in response body"]
-
-    OK["✅ HTTP 200\nSuccess response"]
-
-    Req --> MissingField
-    MissingField -- "Yes" --> E400
-    MissingField -- "No" --> PydanticOK
-    PydanticOK -- "No" --> E422
-    PydanticOK -- "Yes" --> NotFound
-    NotFound -- "No" --> ChatOp
-    ChatOp -- "Yes /command" --> ChatFail
-    ChatOp -- "No REST" --> E404
-    NotFound -- "Yes" --> ServerOK
-    ServerOK -- "No" --> E500
-    ServerOK -- "Yes" --> OK
-```
-
-### Error Reference Table
-
-| Status | Scenario |
+| Status | When it happens |
 |---|---|
-| `400` | Missing required field (e.g. `student_id` for delete) |
-| `404` | Student not found during update or read |
-| `422` | Pydantic validation failure — missing or wrong-type fields |
-| `500` | Unhandled exception or missing `GEMINI_API_KEY` |
+| `400` | A required field is missing, or the Gemini API key is invalid |
+| `404` | Student not found during a REST read or update |
+| `422` | Wrong data type or missing field in the request body |
+| `500` | Something unexpected broke on the server |
 
-Chat-specific errors return HTTP 200 with `success: false`:
+Chat errors come back as HTTP 200 with `success: false` so the frontend can show them inline:
 
 ```json
 {
@@ -548,10 +475,11 @@ Chat-specific errors return HTTP 200 with `success: false`:
 
 ## 11. Assumptions & Limitations
 
-- No authentication or authorization is implemented
-- No database migration tooling — schema must be created manually
-- Frontend API base URL (`http://localhost:8000`) is hard-coded; change `API_BASE` in page files before deploying
-- `PUT /update` requires all fields; partial updates only via `/command`
-- The `/command` endpoint requires a valid `GEMINI_API_KEY` — it will return 400 if the key is missing or the Gemini API is unreachable
-- No rate limiting on the `/command` endpoint
-- Bulk operations (`delete_all_students`, `delete_where`, `update_where`) execute individual SQL calls in a loop — not wrapped in a transaction
+- No login or user authentication
+- Database schema must be created manually — no migration tool
+- Frontend is hard-coded to talk to `http://localhost:8000` — change `API_BASE` before deploying
+- The form-based `PUT /update` needs all fields filled in; the chat handles partial updates
+- The `/command` endpoint needs a working Gemini API key to function
+- No rate limiting on `/command` — every message hits the Gemini API
+- Bulk operations run one SQL query per student in a loop, not as a single transaction
+- `archive` uses the grade column as a soft-delete flag; there is no separate active/inactive column
