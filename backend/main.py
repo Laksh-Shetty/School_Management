@@ -6,6 +6,8 @@ from fastapi.exceptions import RequestValidationError
 from functions.students import create_student, read_student, update_student, delete_student, all_students
 from functions.chatbot import handle_command
 from schema.student import Student
+from pydantic import BaseModel
+from database import cursor, conn as db
 
 
 app = FastAPI()
@@ -55,6 +57,20 @@ async def chat(command: dict):
 @app.post("/command")
 async def command(command: dict):
     return await _chat_handler(command)
+
+class FeedbackPayload(BaseModel):
+    message_text: str = ""
+    function_names: str = ""
+    rating: str
+
+@app.post("/feedback")
+async def save_feedback(payload: FeedbackPayload):
+    cursor.execute(
+        "INSERT INTO feedback (message_text, function_names, rating) VALUES (%s, %s, %s)",
+        (payload.message_text, payload.function_names, payload.rating)
+    )
+    db.commit()
+    return {"success": True}
 
 
 @app.exception_handler(RequestValidationError)

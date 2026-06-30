@@ -384,6 +384,10 @@ def _process(action: dict) -> dict:
         update_student(Student(**{**existing, "grade": "ARCHIVED", "id": sid}))
         return _ok(fn, f"Student {sid} archived (soft-deleted)", None, {"archived_id": sid}, args)
     
+    elif fn == "chitchat":
+        reply = args.get("reply") or "Hey! How can I help with student records?"
+        return _ok(fn, reply, None, None, args)
+    
     elif fn == "help":
         result = {
         "categories": [

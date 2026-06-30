@@ -482,4 +482,8 @@ Chat errors come back as HTTP 200 with `success: false` so the frontend can show
 - The `/command` endpoint needs a working Gemini API key to function
 - No rate limiting on `/command` — every message hits the Gemini API
 - Bulk operations run one SQL query per student in a loop, not as a single transaction
+<<<<<<< HEAD
 - `archive` uses the grade column as a soft-delete flag; there is no separate active/inactive column
+=======
+- `archive` uses the grade column as a soft-delete flag; there is no separate active/inactive column
+>>>>>>> cf05e98 (Remove .env from  tracking)

@@ -64,6 +64,9 @@ archive      {"student_id":1}
 ### HELP
 help         {}
 
+### CHITCHAT
+chitchat     {"reply":"<short friendly reply>"}   ← greetings, thanks, small talk, or anything unrelated to student data
+
 ## KEY EXAMPLES
 
 "read students 1,2,3" → [{"function":"get","args":{"student_id":1}},{"function":"get","args":{"student_id":2}},{"function":"get","args":{"student_id":3}}]
@@ -78,6 +81,9 @@ help         {}
 "add Riya then show all" → [{"function":"add","args":{...}},{"function":"all","args":{}}]
 "what can you do" → {"function":"help","args":{}}
 "help" → {"function":"help","args":{}}
+"hello" → {"function":"chitchat","args":{"reply":"Hey! I can help you manage students — try asking me to show, add, or search students."}}
+"thanks" → {"function":"chitchat","args":{"reply":"You're welcome! Anything else you need?"}}
+"who won the world cup" → {"function":"chitchat","args":{"reply":"I'm only set up to help with student records, not general questions. Try asking about students!"}}
 
 ## RULES
 - Specific IDs → array of individual ops
@@ -95,6 +101,7 @@ help         {}
 - summary: "export", "download summary", "generate report"
 - help: "what can you do", "help", "features", "commands", "how to use", "show features"
 - Function names must match exactly as listed above.
+- chitchat: greetings, thanks, farewells, or off-topic questions unrelated to students — reply briefly and steer back to student commands
 """
 
 
